@@ -20,6 +20,9 @@ function! kube#fileOpDoneCb(ch)
       call add(jo['lines'], line)
     endwhile
   else
+    if ch_status(a:ch, {'part': 'err'}) == 'closed'
+      let sawError = 1
+    endif
     while ch_status(a:ch, {'part': 'out'}) == 'buffered'
       let line = ch_readraw(a:ch)
       call add(jo['lines'], line)
@@ -34,12 +37,12 @@ endfunction
 
 function! s:handle_out(out, op, error)
   if a:error
-    echom "Error encountered:\n" . a:out
+    echom "Error encountered: " . a:out
   else
     if a:op == 'delete'
-      echom "Successfully deleted resources:\n" . a:out
+      echom "Successfully deleted resources: " . a:out
     else
-      echom "Successfully applied updates:\n" . a:out
+      echom "Successfully applied updates: " . a:out
     endif
   endif
 endfunction
@@ -48,7 +51,7 @@ function! s:ch_get_id(ch)
   let id = substitute(a:ch, '^channel \(\d\+\) \(open\|closed\)$', '\1', '')
 endfunction
 
-function! s:KubeFileOp(op, wholeDir)
+function! s:KubeFileOp(op, wholeDir, line1, line2)
   let cmd = 'kubectl ' . a:op . ' -f '
 
   let input = ""
@@ -57,7 +60,7 @@ function! s:KubeFileOp(op, wholeDir)
   else
     " Using stdin so this can possibly be switched to buffer contents
     let cmd = cmd . '-'
-    let input = join(getline(1,'$'), "\n")
+    let input = join(getline(a:line1, a:line2), "\n")
   endif
 
   if a:op == "delete"
@@ -65,7 +68,7 @@ function! s:KubeFileOp(op, wholeDir)
   endif
 
   if s:async && (!exists('g:kubernetes_no_async') || !g:kubernetes_no_async)
-    let job = job_start(cmd, 
+    let job = job_start(cmd,
           \{
           \'close_cb': 'kube#fileOpDoneCb',
           \'err_io': 'out',
@@ -89,17 +92,17 @@ function! s:KubeFileOp(op, wholeDir)
   endif
 endfunction
 
-fun! s:KubeRecreate()
+fun! s:KubeRecreate(line1, line2)
   let g:kubernetes_no_async="true"
-  call s:KubeFileOp('delete', 0)
+  call s:KubeFileOp('delete', 0, a:line1, a:line2)
   unlet g:kubernetes_no_async
-  call s:KubeFileOp('create', 0)
+  call s:KubeFileOp('create', 0, a:line1, a:line2)
 endf
 
-command! KubeApply call s:KubeFileOp('apply', 0)
-command! KubeDelete call s:KubeFileOp('delete', 0)
-command! KubeCreate call s:KubeFileOp('create', 0)
-command! KubeRecreate call s:KubeRecreate()
+command! -range=% KubeApply call s:KubeFileOp('apply', 0, <line1>, <line2>)
+command! -range=% KubeDelete call s:KubeFileOp('delete', 0, <line1>, <line2>)
+command! -range=% KubeCreate call s:KubeFileOp('create', 0, <line1>, <line2>)
+command! -range=% KubeRecreate call s:KubeRecreate(<line1>, <line2>)
 
 command! KubeApplyDir call s:KubeFileOp('apply', 1)
 command! KubeDeleteDir call s:KubeFileOp('delete', 1)

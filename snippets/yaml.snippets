@@ -23,8 +23,8 @@ snippet rc
 							memory: 200Mi
 					ports:
 					- containerPort: 8080
-	
-snippet dep
+
+snippet deploy
 	apiVersion: apps/v1
 	kind: Deployment
 	metadata:
@@ -50,7 +50,7 @@ snippet dep
 							memory: 200Mi
 					ports:
 					- containerPort: 8080
-	
+
 snippet svc
 	apiVersion: v1
 	kind: Service
@@ -66,7 +66,7 @@ snippet svc
 		selector:
 			app: $3
 			tier: $4
-	
+
 snippet depsvc
 	apiVersion: apps/v1
 	kind: Deployment
@@ -105,7 +105,7 @@ snippet depsvc
 			targetPort: $6
 		selector:
 			$3
-	
+
 snippet depsvcing
 	apiVersion: apps/v1
 	kind: Deployment
@@ -163,7 +163,7 @@ snippet depsvcing
 					backend:
 						serviceName: $1
 						servicePort: $7
-	
+
 snippet pv
 	apiVersion: v1
 	kind: PersistentVolume
@@ -180,7 +180,7 @@ snippet pv
 		nfs:
 			server: ${6:NameOrIP}
 			path: ${7:"/share/path/on/server"}
-	
+
 snippet pvc
 	apiVersion: v1
 	kind: PersistentVolumeClaim
@@ -198,7 +198,7 @@ snippet pvc
 			requests:
 				# The amount of the volume's storage to request
 				storage: ${7:20Gi}
-	
+
 snippet ing
 	apiVersion: extensions/v1beta1
 	kind: Ingress
@@ -218,33 +218,33 @@ snippet ing
 					backend:
 						serviceName: ${8:service}
 						servicePort: ${9:portNumberOrName}
-	
+
 snippet ns
 	apiVersion: v1
 	kind: Namespace
 	metadata:
 		name: ${1:name}
-	
+
 snippet sa
 	apiVersion: v1
 	kind: ServiceAccount
 	metadata:
 		name: ${1:name}
-	
+
 snippet ingtls
 	tls:
 	- secretName: ${2:$1.tls}
 		hosts:
 		- ${1:host}
-	
-snippet cfg
+
+snippet cm
 	apiVersion: v1
 	kind: ConfigMap
 	metadata:
 		name: ${1:name}
 	data:
 		${2:key}: ${3:value}
-	
+
 snippet sec
 	apiVersion: v1
 	kind: Secret
@@ -253,22 +253,22 @@ snippet sec
 	type: ${2:Opaque}
 	data:
 	  ${3:key}: ${4:value}
-	
+
 snippet env
 	- name: ${1:VAR_NAME}
 	  value: ${2:value}
-	
+
 snippet secref
 	valueFrom:
 		secretKeyRef:
 			name: ${1:secret-name}
 			key: ${2:key-name}
-	
+
 snippet pvol
 	- name: ${1:name}
 		${2:source}:
-			name: 
-	
+			name:
+
 snippet job
 	apiVersion: batch/v1
 	kind: Job
@@ -285,12 +285,12 @@ snippet job
 				- name: ${3:containerName}
 					image: ${4: image}
 					imagePullPolicy: Always
-					command: 
+					command:
 					- ${5:"override"
 					- "--the"
 					- "entrypoint"}
 				restartPolicy: OnFailure
-	
+
 snippet cron
 	apiVersion: batch/v2alpha1
 	kind: CronJob
@@ -310,13 +310,13 @@ snippet cron
 							- -c
 							- date; echo Hello from the Kubernetes cluster}
 						restartPolicy: OnFailure
-	
+
 snippet skr
 	valueFrom:
 		secretKeyRef:
 			name: ${1:secret}
 			key: ${2:key}
-	
+
 snippet cert
 	apiVersion: certmanager.k8s.io/v1alpha1
 	kind: Certificate
@@ -335,8 +335,8 @@ snippet cert
 		issuerRef:
 			name: ${5:letsencrypt}
 			kind: ClusterIssuer
-	
-	
+
+
 snippet netp
 	kind: NetworkPolicy
 	apiVersion: extensions/v1beta1
@@ -349,7 +349,7 @@ snippet netp
 					${3:{}}
 	}	ingress:
 				- {}
-	
+
 snippet probe
 	livenessProbe: &probe
 		initialDelaySeconds: ${1:10}
@@ -357,7 +357,7 @@ snippet probe
 			port: ${2:8080}
 			path: ${3:/}
 	readinessProbe: *probe $0
-	
+
 snippet ss
 	apiVersion: v1
 	kind: Service
@@ -405,7 +405,7 @@ snippet ss
 				resources:
 					requests:
 						storage: ${10:1G}
-	
+
 snippet res
 	resources:
 		requests:
@@ -414,7 +414,7 @@ snippet res
 		${5:limits:
 			cpu: ${3:$1}
 			memory: ${4:$2}}$0
-	
+
 snippet init
 	initContainers:
 	- name: ${1:myinit}
@@ -423,30 +423,30 @@ snippet init
 		${6:volumeMounts:
 		- name: ${4:data}
 			mountPath: ${5:/data}}$0
-	
+
 snippet strat
 	strategy:
 		type: ${1:RollingUpdate|Recreate}
 		rollingUpdate:
 			maxSurge: ${2:1}
 			maxUnavailable: ${3:1}$0
-	
+
 snippet atls
 	annotations:
 		kubernetes.io/tls-acme: "true"
-	
+
 snippet vtls
 	annotations:
 		kubernetes.io/tls-vault: "true"
-	
+
 snippet cmtls
 	${2:annotations:
 		}certmanager.k8s.io/cluster-issuer: ${1:lets-encrypt}
-	
+
 snippet edns
 	annotations:
 		external-dns.alpha.kubernetes.io/hostname: ${1:myname.mydomain.com}
-	
+
 snippet role
 	kind: ${1:Cluster}Role
 	apiVersion: rbac.authorization.k8s.io/v1
@@ -458,7 +458,7 @@ snippet role
 		resources: ["${6:configmaps}"]
 		resourceNames: ["${7:my-configmap}"]
 		verbs: [${8:"update", "get"}]
-	
+
 snippet rb
 	# This role binding allows "jane" to read pods in the "default" namespace.
 	kind: ${1:Cluster}RoleBinding
@@ -474,7 +474,7 @@ snippet rb
 		kind: ${7:Cluster}Role #this must be Role or ClusterRole
 		name: ${8:pod-reader} # this must match the name of the Role or ClusterRole you wish to bind to
 		apiGroup: rbac.authorization.k8s.io
-	
+
 snippet rbac
 	kind: ${1:Cluster}Role
 	apiVersion: rbac.authorization.k8s.io/v1
@@ -501,7 +501,7 @@ snippet rbac
 		kind: $1Role #this must be Role or ClusterRole
 		name: $4 # this must match the name of the Role or ClusterRole you wish to bind to
 		apiGroup: rbac.authorization.k8s.io
-	
+
 snippet hpa
 	apiVersion: autoscaling/v1
 	kind: HorizontalPodAutoscaler
@@ -515,29 +515,29 @@ snippet hpa
 		minReplicas: ${2:1}
 		maxReplicas: ${3:5}
 		targetCPUUtilizationPercentage: ${4:70}
-	
+
 snippet pvolm
 		volumeMounts:
 		- name: ${1:volume}
 			mountPath: ${2:/etc/mount/path}
 			${3:subPath: ${4: key}}
-	volumes: 
+	volumes:
 	- name: $1
 		${5:configMap}:
 			${6:name}: ${7:someName}
-	
+
 snippet volm
 	- name: ${1:volume}
 		mountPath: ${2:/etc/mount/path}
 		${3:subPath: ${4: key}}
 	$0
-	
+
 snippet prom
 	annotations:
 		prometheus.io/scrape: "true"
 		prometheus.io/endpoint: "${1:/metrics}"
 		prometheus.io/port: "${2:8080}"
-	
+
 snippet aff
 	pod${1:Anti}Affinity:
 		${2:preferred|required}DuringSchedulingIgnoredDuringExecution:
@@ -550,7 +550,7 @@ snippet aff
 						values:
 						- ${4:appname}
 				topologyKey: ${5:kubernetes.io/hostname}
-	
+
 snippet hpa
 	apiVersion: autoscaling/v2beta1
 	kind: HorizontalPodAutoscaler
